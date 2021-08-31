@@ -1,6 +1,6 @@
 # Conanwiki Connection Status
 
-    Dieses Plugin zeigt den Status von Conanwiki Mitgliedern an, in dem Sinne, in dem man es in dem Connected Tab findet, es werden Farben für Ränge vergeben
+Dieses Plugin zeigt den Status von Conanwiki Mitgliedern an, in dem Sinne, in dem man es in dem Connected Tab findet, es werden Farben für Ränge vergeben
 
 ## Benutzen
 
