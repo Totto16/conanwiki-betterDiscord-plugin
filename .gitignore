@@ -1,0 +1,14 @@
+# Generated files
+node_modules
+release/*
+!release/conanwiki.plugin.js
+plugins
+/config.json
+TODO.txt
+discord1.js
+discord2.js
+getNestProp_performance.js
+examples/*
+!examples/conanwiki
+package-lock.json
+tests_*

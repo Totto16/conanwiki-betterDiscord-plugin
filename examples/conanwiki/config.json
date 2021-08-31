@@ -1,0 +1,15 @@
+{
+    "info": {
+        "name": "Conanwiki",
+        "authors": [{
+            "name": "Totto",
+            "discord_id": "234601841101373440",
+            "github_username": "Totto16"
+        }],
+        "version": "1.0.0",
+        "description": "Zeigt Fall ein user im Conannews.org server ist, sein wiki profil als Benutzerinfo an",
+        "github": "",
+        "github_raw": ""
+    },
+    "main": "conanwiki.js"
+}
