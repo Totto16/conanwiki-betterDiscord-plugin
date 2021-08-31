@@ -120,7 +120,7 @@ module.exports = (() => {
             "anchorUnderlineOnHover-2ESHQB",
             "connectedAccountOpenIcon-E5wGF4"]
  */
-    const debugMode = true;
+    const debugMode = false;
     const debug = (...args)=>{
         if(debugMode){
             args.forEach(arg=>Logger.debug(arg))
