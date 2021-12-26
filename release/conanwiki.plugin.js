@@ -1,10 +1,10 @@
 /**
  * @name conanwiki
- * @invite undefined
- * @authorLink undefined
- * @donate undefined
- * @patreon undefined
- * @website 
+ * @invite 
+ * @authorLink https://github.com/Totto16
+ * @donate 
+ * @patreon https://www.patreon.com/conannews
+ * @website https://github.com/Totto16/conanwiki-betterDiscord-plugin/
  * @source 
  */
 /*@cc_on
@@ -32,7 +32,7 @@
 @else@*/
 
 module.exports = (() => {
-    const config = {"info":{"name":"Conanwiki","authors":[{"name":"Totto","discord_id":"234601841101373440","github_username":"Totto16"}],"version":"1.0.0","description":"Zeigt Fall ein user im Conannews.org server ist, sein wiki profil als Benutzerinfo an","github":"","github_raw":""},"main":"conanwiki.js"};
+    const config = {"info":{"name":"Conanwiki","authors":[{"name":"Totto","discord_id":"234601841101373440","github_username":"Totto16"}],"patreonLink":"https://www.patreon.com/conannews","paypalLink":"","authorLink":"https://github.com/Totto16","inviteCode":"","version":"1.0.1-alpha","description":"Zeigt Fall ein user im Conannews.org server ist, sein wiki profil als Benutzerinfo an","github":"https://github.com/Totto16/conanwiki-betterDiscord-plugin/","github_raw":""},"main":"conanwiki.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -89,7 +89,6 @@ module.exports = (() => {
 </path>
 </svg></a></div>`;
     const css = ``;
-
     const conanewsGuildID = "392277656445648897";
     const WikiRoles = [ "432639079084064778","536414852315611137","665584545097056287", "434039051566317581"];
     //const badges = require("badges")
@@ -106,6 +105,7 @@ module.exports = (() => {
     "anchor",
     "anchorUnderlineOnHover",
     "connectedAccountOpenIcon"];
+
 /**example names
  * 
  * 
@@ -126,6 +126,270 @@ module.exports = (() => {
             args.forEach(arg=>Logger.debug(arg))
         }
     }
+    class API {
+        constructor(base_path = "https://conanwiki.org/api.php"){
+            this.base_path= base_path;
+        }
+
+        async API_request(options){
+            return new Promise((resolve, reject)=>{
+                    let {url, query} = options;
+                    if(!url && !query){
+                        reject("Not enough Arguments provided!",null);
+                    }
+                    if(!url && query){
+                        url = `${this.base_path}?${query.map(a=>a.join('=')).join('&')}`;
+                    }
+
+                    let headers = new Headers();
+                    debugMode(url)
+                    fetch(url, {
+                        method : "GET",
+                        headers
+                    })
+                    .then((response) => {
+                        if (!response.ok) {
+                            throw new Error(response.error)
+                        }
+                        return response.json();
+                    })
+                    .then((data) => {
+                        resolve(data);
+                    })
+                    .catch((err) => {
+                        reject(err);
+                    });
+                })
+        }
+
+        async API_getUserList(options){
+            return new Promise((resolve, reject)=>{
+                    let { aufrom, aulimit} = options?? {aufrom:'!',aulimit:500};
+                    if(!aulimit){
+                        aulimit = 500;
+                    }
+                    if(!aufrom){
+                        aufrom = '!';
+                    }
+                // https://conanwiki.org/api.php?action=query&list=allusers&format=json&auwitheditsonly=1&aulimit=500&auprop=editcount&aufrom=!
+
+                let query = [['action','query'],['list','allusers'],['format','json'],['auwitheditsonly','1'],['aulimit',aulimit],['auprop','editcount'],['aufrom',aufrom],['origin','*']];
+                this.API_request({query}).then((...data)=>resolve(data)).catch((...err)=>reject(err));
+            })
+        }
+
+        async getItem(key, format = true){
+            return new Promise(async (resolve, reject)=>{
+                    if(typeof localStorage !== 'undefined'){
+                        let result = localStorage.getItem(key);
+                        try{
+                            resolve(format ? JSON.parse(result) : result);
+                        }catch(e){
+                            resolve(result);
+                        }
+                    }else if(typeof indexedDB !== 'undefined' ){
+                        if(!this.database){
+                            this.database = new SimpleIDB();
+                            await this.database.initialize();
+                        }
+                        let result = await this.database.get(key);
+                        try{
+                            resolve(format ? JSON.parse(result) : result);
+                        }catch(e){
+                            resolve(result);
+                        }
+                    }
+                })
+        }
+
+        async setItem(key, value, format = true){
+            return new Promise(async (resolve, reject)=>{
+                    if(typeof value !== 'string' && format){
+                        value = JSON.stringify(value);
+                    }
+
+                    if(typeof localStorage !== 'undefined'){
+                        let res = localStorage.setItem(key, value);
+                        resolve(res);
+                    }else if(typeof indexedDB !== 'undefined'){
+                        if(!this.database){
+                            this.database = new SimpleIDB();
+                            await this.database.initialize();
+                        }
+                        let res = await this.database.set(key, value);
+                        resolve(res);
+                    }
+                })
+        }
+
+        async deleteItem(key){
+            return new Promise(async (resolve, reject)=>{
+                if(typeof localStorage !== 'undefined'){
+                    let result = localStorage.removeItem(key);
+                    resolve(result);
+                }else if(typeof indexedDB !== 'undefined' ){
+                    if(!this.database){
+                        this.database = new SimpleIDB();
+                        await this.database.initialize();
+                    }
+                    let result = await this.database.remove(key);
+                    resolve(result);
+                }
+            })
+        }
+
+
+        async getAllUsers(continuation = {continue:false, data:[], aufrom:null, force:false}){
+            return new Promise(async (resolve, reject)=>{
+                    let cached = await this.getItem('CW_API_CACHED_USERS_TIME');
+                    let refresh;
+                    if(cached){
+                        let TIME_THRESHOLD = 1000 * 60 * 60 * 24; //24 hours
+                        refresh = ((new Date().getTime()) - cached) >= TIME_THRESHOLD;
+                    }else{
+                        refresh = true;
+                    }
+
+                    if(refresh || continuation.continue){
+                        this.API_getUserList({aufrom:continuation.aufrom}).then(async ([data])=>{
+                            let cont_data = continuation.data.concat(data.query.allusers);
+                            if(data.continue){
+                                    let fetched = await this.getAllUsers({data:cont_data, aufrom:data.continue.aufrom});
+                                    resolve(fetched)
+                                }else{
+                                    await this.setItem('CW_API_CACHED_USERS',cont_data);
+                                    await this.setItem('CW_API_CACHED_USERS_TIME',new Date().getTime());
+                                    debug('Data from Site:', cont_data);
+                                    resolve(cont_data);
+                                }
+
+                        }).catch(error=> Logger.error("In API.getAllUsers: ",error));
+                    }else{
+                        let data = await this.getItem('CW_API_CACHED_USERS');
+                        debug('Data from Cache:', data);
+                        resolve(data);
+                    }
+                })
+        }
+
+        getUserDataByName(data, name){
+                return this.getUserDataByProperty(data, "name", name);
+        }
+
+        getUserDataByProperty(data, property, value){
+            if(!data){
+                return "No data provided!";
+            }else if(!property ||!value){
+                return "Not enough valid arguments!";
+            }else{
+                for(let i = 0; i < data.length; i++){
+                    if(data[i][property]==value){
+                        return data[i];
+                    }
+                }
+                return null;
+            }
+        }
+    }
+
+    //source: https://codepen.io/xon5/pen/wYMezq
+
+    /** SimpleIDB **/
+    class SimpleIDB {
+        constructor(name = "Plugin_ConanWiki_DB", version = 3){
+            this.name = name;
+            this.version = version;
+        }
+        name
+        version
+        async initialize(deletePrevious = false) {
+            return new Promise((resolve, reject) => {
+                if(deletePrevious){
+                    let dRequest = indexedDB.deleteDatabase(this.name);
+                    dRequest.onerror = function() {
+                        reject(dRequest.error)
+                    }
+                }
+                // Then try to creates a new one
+                let request = indexedDB.open(this.name, this.version)
+                request.onupgradeneeded = function() {
+                    request.result.createObjectStore('data')
+                    resolve();
+                }
+                request.onsuccess = function () {
+                    // already existed
+                    resolve();
+                }
+                request.onerror = function() {
+                    reject(request.error)
+                }
+            })
+        }
+
+        async get(key) {
+            return new Promise((resolve, reject) => {
+                let oRequest = indexedDB.open(this.name)
+                oRequest.onsuccess = function() {
+                    let db = oRequest.result
+                    let tx = db.transaction('data', 'readonly')
+                    let st = tx.objectStore('data')
+                    let gRequest = st.get(key)
+                    gRequest.onsuccess = function() {
+                        resolve(gRequest.result)
+                    }
+                    gRequest.onerror = function() {
+                        reject(gRequest.error)
+                    }
+                }
+                oRequest.onerror = function() {
+                    reject(oRequest.error)
+                }
+            })
+        }
+
+        async set(key, value) {
+            return new Promise((resolve, reject) => {
+                let oRequest = indexedDB.open(this.name)
+                oRequest.onsuccess = function() {
+                    let db = oRequest.result
+                    let tx = db.transaction('data', 'readwrite')
+                    let st = tx.objectStore('data')
+                    let sRequest = st.put(value, key)
+                    sRequest.onsuccess = function() {
+                        resolve()
+                    }
+                    sRequest.onerror = function() {
+                        reject(sRequest.error)
+                    }
+                }
+                oRequest.onerror = function() {
+                    reject(oRequest.error)
+                }
+            })
+        }
+
+        async remove(key) {
+            return new Promise((resolve, reject) => {
+                let oRequest = indexedDB.open(this.name)
+                oRequest.onsuccess = function() {
+                    let db = oRequest.result
+                    let tx = db.transaction('data', 'readwrite')
+                    let st = tx.objectStore('data')
+                    let rRequest = st.delete(key)
+                    rRequest.onsuccess = function() {
+                        resolve()
+                    }
+                    rRequest.onerror = function() {
+                        reject(rRequest.error)
+                    }
+                }
+                oRequest.onerror = function() {
+                    reject(oRequest.error)
+                }
+            })
+        }
+    }
+
     return class ConanWikiPlugin extends Plugin {
         constructor() {
             super();
@@ -136,7 +400,7 @@ module.exports = (() => {
             try{
                 let guilds = DiscordAPI.guilds;
                 guilds = guilds.filter(guild=>guild.id==conanewsGuildID)
-                if(guilds.length>0){
+                if(guilds.length > 0){
                     let target = document.querySelectorAll("[class*=layerContainer]");
                     this.observer = new MutationObserver(this.userModalShow);
                     let options = {
@@ -152,6 +416,7 @@ module.exports = (() => {
                     });
                     this.classes = this.getObfuscatedClasses();
                     window.ConanWikiPlugin = this;
+                    this.fetchData();
                     this.userModalShow();
                 }else{
                     Logger.info("Du musst im Conannews.org Server sein, um dieses Plugin benutzen zu können:\nhttps://discord.gg/conannews");
@@ -212,7 +477,7 @@ module.exports = (() => {
                             
                             if(users.length==1){
                                 let user = users[0];
-                               // Logger.debug(user)
+                                //debug(user)
                                 //user guilds are only those, which servers you and that users a re BOTH in!
                                 let guilds = user.guilds.filter(guild=>guild.id==conanewsGuildID)
                                 if(guilds.length>0){
@@ -272,7 +537,7 @@ module.exports = (() => {
             connDiv.querySelector('.anchor').href=`https://conanwiki.org/wiki/Benutzer:${name}`;
             connDiv.querySelector('.connectedAccountName').style.color = color;
             connDiv.querySelector('.connectedAccountName').innerHTML=name;
-// `https://conanwiki.org/index.php?target=${name}&namespace=all&tagfilter=&start=&end=&title=Spezial:Beiträge`
+            // `https://conanwiki.org/index.php?target=${name}&namespace=all&tagfilter=&start=&end=&title=Spezial:Beiträge`
             MapNames.forEach((map,index)=>{
                 let replace = window.ConanWikiPlugin.classes.map[index]
                 connDiv.querySelectorAll(`.${map}`).forEach(div=>{
@@ -305,6 +570,13 @@ module.exports = (() => {
 
             return ob;
         }
+        async fetchData(){
+            this.CW_Client = new API();
+            this.database = new SimpleIDB();
+            await this.database.initialize();
+            this.data = await this.CW_Client.getAllUsers();
+        }
+
         onStop() {
             if(this.observer){
                 this.observer.disconnect();
