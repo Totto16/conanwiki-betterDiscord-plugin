@@ -613,7 +613,7 @@ module.exports = (() => {
                         Logger.warn(
                             'Seems like the possible User cloned himself! Report that, this is undefined behavior :('
                         );
-                        Logger.log(possibleThings);
+                        Logger.warn(possibleThings);
                         return null;
                     }
                 } else {
@@ -626,7 +626,6 @@ module.exports = (() => {
 
         createConnectedDiv(name, color, verificated) {
             const connDiv = DOMTools.createElement(connectedDiv);
-            Logger.log(connDiv);
             connDiv.classList.add(window.ConanWikiPlugin.classes.map[MapNames.indexOf('connectedAccount')]);
             connDiv.id = `ConanwikiPlugin-name-${name}`;
             if (document.getElementById(connDiv.id)) {
