@@ -1,20 +1,31 @@
 {
     "info": {
         "name": "Conanwiki",
-        "authors": [{
-            "name": "Totto",
-            "discord_id": "234601841101373440",
-            "github_username": "Totto16"
-
-        }],
-        "patreonLink":"https://www.patreon.com/conannews",
-        "paypalLink":"",
-        "authorLink":"https://github.com/Totto16",
-        "inviteCode":"",
-        "version": "1.0.1-alpha",
-        "description": "Zeigt Fall ein user im Conannews.org server ist, sein wiki profil als Benutzerinfo an",
+        "authors": [
+            {
+                "name": "Totto",
+                "discord_id": "234601841101373440",
+                "github_username": "Totto16"
+            }
+        ],
+        "patreonLink": "https://www.patreon.com/conannews",
+        "paypalLink": "",
+        "authorLink": "https://github.com/Totto16",
+        "inviteCode": "",
+        "version": "1.0.1",
+        "description": "Zeigt falls ein User im Conannews.org Server ist, sein Wiki Profil als Benutzerinfo an.",
         "github": "https://github.com/Totto16/conanwiki-betterDiscord-plugin/",
-        "github_raw": ""
+        "github_raw": "https://raw.githubusercontent.com/Totto16/conanwiki-betterDiscord-plugin/master/release/conanwiki.plugin.js"
     },
+    "changelog": [
+        {
+            "title": "Fehlerbehebung und Verbesserungen",
+            "items": [
+                "Fehlerbehebungen beim hinzufügen der Info",
+                "Holt sich nun aktuellere Informationen und zeigt Rolle korrekt an",
+                "Auch User die z.B 'MARIO-WL' im Disocrd heißen und im Wiki 'Mario-WL' oder user Mit speziellen Sonderzeichen werden erkannt"
+            ]
+        }
+    ],
     "main": "conanwiki.js"
 }

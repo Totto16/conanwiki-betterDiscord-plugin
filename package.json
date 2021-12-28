@@ -29,7 +29,9 @@
     "dev": "nodemon --ignore release/ --ignore nodemw.js --exec \"npm run conanwiki\"",
     "bowser": "browserify examples/conanwiki/nodemw.bowser.js -o examples/conanwiki/nodemw.js",
     "conanwiki": "npm run build_plugin conanwiki && cp release/conanwiki.plugin.js ../plugins/conanwiki.plugin.js",
-    "conanwiki:2": "npm run bowser && npm run build_plugin conanwiki && cp release/Conanwiki.plugin.js ../plugins/Conanwiki.plugin.js"
+    "conanwiki:2": "npm run bowser && npm run build_plugin conanwiki && cp release/Conanwiki.plugin.js ../plugins/Conanwiki.plugin.js",
+    "prettier": "npx prettier --write .",
+    "all":"node . --all -s -t"
   },
   "author": "Zerebos",
   "license": "MIT",
@@ -44,6 +46,7 @@
   },
   "dependencies": {
     "browserify": "^17.0.0",
-    "nodemw": "^0.16.0"
+    "nodemw": "^0.16.0",
+    "prettier": "^2.5.1"
   }
 }
