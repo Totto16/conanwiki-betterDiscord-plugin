@@ -8,3 +8,12 @@ node_modules
 .github
 scripts/
 src/
+tests/
+.babelrc
+.eslintrc
+*.json
+*.yml
+release/
+webpack.config.js
+*.css
+*.html
