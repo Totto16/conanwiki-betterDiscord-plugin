@@ -12,12 +12,18 @@
         "paypalLink": "",
         "authorLink": "https://github.com/Totto16",
         "inviteCode": "",
-        "version": "1.0.1",
+        "version": "1.0.2",
         "description": "Zeigt falls ein User im Conannews.org Server ist, sein Wiki Profil als Benutzerinfo an.",
         "github": "https://github.com/Totto16/conanwiki-betterDiscord-plugin/",
         "github_raw": "https://raw.githubusercontent.com/Totto16/conanwiki-betterDiscord-plugin/master/release/conanwiki.plugin.js"
     },
-    "changelog": [
+    "changelog": [{
+        "title": "Small Bug Fix",
+        "items": [
+            "Fehler der durch 'prettier' eingeführt wurde behoben",
+            "Automatische Updates durch github aktiviert"
+            ]
+        },
         {
             "title": "Fehlerbehebung und Verbesserungen",
             "items": [

@@ -32,7 +32,7 @@
 @else@*/
 
 module.exports = (() => {
-    const config = {"info":{"name":"Conanwiki","authors":[{"name":"Totto","discord_id":"234601841101373440","github_username":"Totto16"}],"patreonLink":"https://www.patreon.com/conannews","paypalLink":"","authorLink":"https://github.com/Totto16","inviteCode":"","version":"1.0.1","description":"Zeigt falls ein User im Conannews.org Server ist, sein Wiki Profil als Benutzerinfo an.","github":"https://github.com/Totto16/conanwiki-betterDiscord-plugin/","github_raw":"https://raw.githubusercontent.com/Totto16/conanwiki-betterDiscord-plugin/master/release/conanwiki.plugin.js"},"changelog":[{"title":"Fehlerbehebung und Verbesserungen","items":["Fehlerbehebungen beim hinzufügen der Info","Holt sich nun aktuellere Informationen und zeigt Rolle korrekt an","Auch User die z.B 'MARIO-WL' im Disocrd heißen und im Wiki 'Mario-WL' oder user Mit speziellen Sonderzeichen werden erkannt"]}],"main":"conanwiki.js"};
+    const config = {"info":{"name":"Conanwiki","authors":[{"name":"Totto","discord_id":"234601841101373440","github_username":"Totto16"}],"patreonLink":"https://www.patreon.com/conannews","paypalLink":"","authorLink":"https://github.com/Totto16","inviteCode":"","version":"1.0.2","description":"Zeigt falls ein User im Conannews.org Server ist, sein Wiki Profil als Benutzerinfo an.","github":"https://github.com/Totto16/conanwiki-betterDiscord-plugin/","github_raw":"https://raw.githubusercontent.com/Totto16/conanwiki-betterDiscord-plugin/master/release/conanwiki.plugin.js"},"changelog":[{"title":"Small Bug Fix","items":["Fehler der durch 'prettier' eingeführt wurde behoben","Automatische Updates durch github aktiviert"]},{"title":"Fehlerbehebung und Verbesserungen","items":["Fehlerbehebungen beim hinzufügen der Info","Holt sich nun aktuellere Informationen und zeigt Rolle korrekt an","Auch User die z.B 'MARIO-WL' im Disocrd heißen und im Wiki 'Mario-WL' oder user Mit speziellen Sonderzeichen werden erkannt"]}],"main":"conanwiki.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -58,49 +58,36 @@ module.exports = (() => {
         const plugin = (Plugin, Library) => {
     const { Logger, Patcher, PluginUtilities, DOMTools, WebpackModules, DiscordAPI } = Library;
     const connectedDiv = `<div>
-    <img alt="Connannews-Logo" class="connectedAccountIcon" src="https://conanwiki.org/favicon.ico" />
+    <img alt="Connannews-Logo" class="connectedAccountIcon" src="https://conanwiki.org/favicon.ico">
     <div class="connectedAccountNameInner">
-        <div class="connectedAccountName">{{placeholder}}</div>
-        <span class="cw-aktiver-benutzer" aria-label="Aktiver Benutzer" style="display: none">
-            <div class="flowerStarContainer connectedAccountVerifiedIcon" style="width: 16px; height: 16px">
-                <svg class="flowerStar" aria-hidden="false" width="16" height="16" viewBox="0 0 16 15.2">
-                    <path
-                        fill="hsl(217, calc(var(--saturation-factor, 1) * 7.6%), 33.5%)"
-                        fill-rule="evenodd"
-                        d="m16 7.6c0 .79-1.28 1.38-1.52 2.09s.44 2 0 2.59-1.84.35-2.46.8-.79 1.84-1.54 2.09-1.67-.8-2.47-.8-1.75 1-2.47.8-.92-1.64-1.54-2.09-2-.18-2.46-.8.23-1.84 0-2.59-1.54-1.3-1.54-2.09 1.28-1.38 1.52-2.09-.44-2 0-2.59 1.85-.35 2.48-.8.78-1.84 1.53-2.12 1.67.83 2.47.83 1.75-1 2.47-.8.91 1.64 1.53 2.09 2 .18 2.46.8-.23 1.84 0 2.59 1.54 1.3 1.54 2.09z"
-                    ></path>
+        <div class="connectedAccountName">
+            {{placeholder}}
+        </div>
+        <span class="cw-verificated-user" aria-label="Verifizierter Benutzer" style="display: none">
+            <div class="flowerStarContainer connectedAccountVerifiedIcon" style="width: 16px; height: 16px;">
+            <svg class="flowerStar" aria-hidden="false" width="16" height="16" viewBox="0 0 16 15.2">
+                <path fill="hsl(217, calc(var(--saturation-factor, 1) * 7.6%), 33.5%)" fill-rule="evenodd" d="m16 7.6c0 .79-1.28 1.38-1.52 2.09s.44 2 0 2.59-1.84.35-2.46.8-.79 1.84-1.54 2.09-1.67-.8-2.47-.8-1.75 1-2.47.8-.92-1.64-1.54-2.09-2-.18-2.46-.8.23-1.84 0-2.59-1.54-1.3-1.54-2.09 1.28-1.38 1.52-2.09-.44-2 0-2.59 1.85-.35 2.48-.8.78-1.84 1.53-2.12 1.67.83 2.47.83 1.75-1 2.47-.8.91 1.64 1.53 2.09 2 .18 2.46.8-.23 1.84 0 2.59 1.54 1.3 1.54 2.09z">
+
+                </path>
+            </svg>
+            <div class="childContainer">
+                <svg aria-hidden="false" width="16" height="16" viewBox="0 0 16 15.2">
+                    <path d="M7.4,11.17,4,8.62,5,7.26l2,1.53L10.64,4l1.36,1Z" fill="hsl(0, calc(var(--saturation-factor, 1) * 0%), 100%)">
+
+                    </path>
                 </svg>
-                <div class="childContainer">
-                    <svg aria-hidden="false" width="16" height="16" viewBox="0 0 16 15.2">
-                        <path
-                            d="M7.4,11.17,4,8.62,5,7.26l2,1.53L10.64,4l1.36,1Z"
-                            fill="hsl(0, calc(var(--saturation-factor, 1) * 0%), 100%)"
-                        ></path>
-                    </svg>
-                </div>
             </div>
-        </span>
-    </div>
-    <a
-        class="anchor anchorUnderlineOnHover"
-        href="https://conanwiki.org/wiki/Benutzer:{{placeholder}}"
-        rel="noreferrer noopener"
-        target="_blank"
-        role="button"
-        tabindex="0"
-    >
+        </div>
+    </span></div>
+    <a class="anchor anchorUnderlineOnHover" href="https://conanwiki.org/wiki/Benutzer:{{placeholder}}" rel="noreferrer noopener" target="_blank" role="button" tabindex="0">
         <svg class="connectedAccountOpenIcon" aria-hidden="false" width="24" height="24" viewBox="0 0 24 24">
-            <path
-                fill="currentColor"
-                d="M10 5V3H5.375C4.06519 3 3 4.06519 3 5.375V18.625C3 19.936 4.06519 21 5.375 21H18.625C19.936 21 21 19.936 21 18.625V14H19V19H5V5H10Z"
-            ></path>
-            <path
-                fill="currentColor"
-                d="M21 2.99902H14V4.99902H17.586L9.29297 13.292L10.707 14.706L19 6.41302V9.99902H21V2.99902Z"
-            ></path></svg
-    ></a>
-</div>
-`;
+            <path fill="currentColor" d="M10 5V3H5.375C4.06519 3 3 4.06519 3 5.375V18.625C3 19.936 4.06519 21 5.375 21H18.625C19.936 21 21 19.936 21 18.625V14H19V19H5V5H10Z">
+
+            </path>
+    <path fill="currentColor" d="M21 2.99902H14V4.99902H17.586L9.29297 13.292L10.707 14.706L19 6.41302V9.99902H21V2.99902Z">
+
+</path>
+</svg></a></div>`;
     const css = ``;
     const conanewsGuildID = '392277656445648897';
     const WikiRoles = ['432639079084064778', '536414852315611137', '665584545097056287', '434039051566317581'];
@@ -639,6 +626,7 @@ module.exports = (() => {
 
         createConnectedDiv(name, color, verificated) {
             const connDiv = DOMTools.createElement(connectedDiv);
+            Logger.log(connDiv);
             connDiv.classList.add(window.ConanWikiPlugin.classes.map[MapNames.indexOf('connectedAccount')]);
             connDiv.id = `ConanwikiPlugin-name-${name}`;
             if (document.getElementById(connDiv.id)) {
@@ -648,7 +636,7 @@ module.exports = (() => {
             connDiv.querySelector('.connectedAccountName').style.color = color;
             connDiv.querySelector('.connectedAccountName').innerHTML = name;
             if (verificated) {
-                connDiv.querySelector('.cw-aktiver-benutzer').style.display = 'initial';
+                connDiv.querySelector('.cw-verificated-user').style.display = 'initial';
             }
             // `https://conanwiki.org/index.php?target=${name}&namespace=all&tagfilter=&start=&end=&title=Spezial:Beiträge`
             MapNames.forEach((map, index) => {

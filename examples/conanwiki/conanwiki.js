@@ -539,6 +539,7 @@ module.exports = (Plugin, Library) => {
 
         createConnectedDiv(name, color, verificated) {
             const connDiv = DOMTools.createElement(connectedDiv);
+            Logger.log(connDiv);
             connDiv.classList.add(window.ConanWikiPlugin.classes.map[MapNames.indexOf('connectedAccount')]);
             connDiv.id = `ConanwikiPlugin-name-${name}`;
             if (document.getElementById(connDiv.id)) {
@@ -548,7 +549,7 @@ module.exports = (Plugin, Library) => {
             connDiv.querySelector('.connectedAccountName').style.color = color;
             connDiv.querySelector('.connectedAccountName').innerHTML = name;
             if (verificated) {
-                connDiv.querySelector('.cw-aktiver-benutzer').style.display = 'initial';
+                connDiv.querySelector('.cw-verificated-user').style.display = 'initial';
             }
             // `https://conanwiki.org/index.php?target=${name}&namespace=all&tagfilter=&start=&end=&title=Spezial:Beiträge`
             MapNames.forEach((map, index) => {
