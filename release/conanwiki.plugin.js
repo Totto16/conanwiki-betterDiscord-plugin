@@ -32,7 +32,7 @@
 @else@*/
 
 module.exports = (() => {
-    const config = {"info":{"name":"Conanwiki","authors":[{"name":"Totto","discord_id":"234601841101373440","github_username":"Totto16"}],"patreonLink":"https://www.patreon.com/conannews","paypalLink":"","authorLink":"https://github.com/Totto16","inviteCode":"","version":"1.0.2","description":"Zeigt falls ein User im Conannews.org Server ist, sein Wiki Profil als Benutzerinfo an.","github":"https://github.com/Totto16/conanwiki-betterDiscord-plugin/","github_raw":"https://raw.githubusercontent.com/Totto16/conanwiki-betterDiscord-plugin/master/release/conanwiki.plugin.js"},"changelog":[{"title":"Small Bug Fix","items":["Fehler der durch 'prettier' eingeführt wurde behoben","Automatische Updates durch github aktiviert"]},{"title":"Fehlerbehebung und Verbesserungen","items":["Fehlerbehebungen beim hinzufügen der Info","Holt sich nun aktuellere Informationen und zeigt Rolle korrekt an","Auch User die z.B 'MARIO-WL' im Disocrd heißen und im Wiki 'Mario-WL' oder user Mit speziellen Sonderzeichen werden erkannt"]}],"main":"conanwiki.js"};
+    const config = {"info":{"name":"Conanwiki","authors":[{"name":"Totto","discord_id":"234601841101373440","github_username":"Totto16"}],"patreonLink":"https://www.patreon.com/conannews","paypalLink":"","authorLink":"https://github.com/Totto16","inviteCode":"","version":"1.0.3","description":"Zeigt falls ein User im Conannews.org Server ist, sein Wiki Profil als Benutzerinfo an.","github":"https://github.com/Totto16/conanwiki-betterDiscord-plugin/","github_raw":"https://raw.githubusercontent.com/Totto16/conanwiki-betterDiscord-plugin/master/release/conanwiki.plugin.js"},"changelog":[{"title":"Update Fixes","items":["Fehler wegen dem Discord Update und Plugin Library Update behoben"]},{"title":"Small Bug Fix","items":["Fehler der durch 'prettier' eingeführt wurde behoben","Automatische Updates durch github aktiviert"]},{"title":"Fehlerbehebung und Verbesserungen","items":["Fehlerbehebungen beim hinzufügen der Info","Holt sich nun aktuellere Informationen und zeigt Rolle korrekt an","Auch User die z.B 'MARIO-WL' im Discord heißen und im Wiki 'Mario-WL' oder user Mit speziellen Sonderzeichen werden erkannt"]}],"main":"conanwiki.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -56,38 +56,37 @@ module.exports = (() => {
         stop() {}
     } : (([Plugin, Api]) => {
         const plugin = (Plugin, Library) => {
-    const { Logger, Patcher, PluginUtilities, DOMTools, WebpackModules, DiscordAPI } = Library;
+    const { Logger, Patcher, PluginUtilities, DOMTools, WebpackModules, DiscordModules, ReactTools } = Library;
     const connectedDiv = `<div>
-    <img alt="Connannews-Logo" class="connectedAccountIcon" src="https://conanwiki.org/favicon.ico">
+    <img alt="Connannews-Logo" class="connectedAccountIcon"
+        src="https://conanwiki.org/favicon.ico">
     <div class="connectedAccountNameInner">
-        <div class="connectedAccountName">
-            {{placeholder}}
-        </div>
-        <span class="cw-verificated-user" aria-label="Verifizierter Benutzer" style="display: none">
-            <div class="flowerStarContainer connectedAccountVerifiedIcon" style="width: 16px; height: 16px;">
-            <svg class="flowerStar" aria-hidden="false" width="16" height="16" viewBox="0 0 16 15.2">
-                <path fill="hsl(217, calc(var(--saturation-factor, 1) * 7.6%), 33.5%)" fill-rule="evenodd" d="m16 7.6c0 .79-1.28 1.38-1.52 2.09s.44 2 0 2.59-1.84.35-2.46.8-.79 1.84-1.54 2.09-1.67-.8-2.47-.8-1.75 1-2.47.8-.92-1.64-1.54-2.09-2-.18-2.46-.8.23-1.84 0-2.59-1.54-1.3-1.54-2.09 1.28-1.38 1.52-2.09-.44-2 0-2.59 1.85-.35 2.48-.8.78-1.84 1.53-2.12 1.67.83 2.47.83 1.75-1 2.47-.8.91 1.64 1.53 2.09 2 .18 2.46.8-.23 1.84 0 2.59 1.54 1.3 1.54 2.09z">
-
-                </path>
-            </svg>
-            <div class="childContainer">
-                <svg aria-hidden="false" width="16" height="16" viewBox="0 0 16 15.2">
-                    <path d="M7.4,11.17,4,8.62,5,7.26l2,1.53L10.64,4l1.36,1Z" fill="hsl(0, calc(var(--saturation-factor, 1) * 0%), 100%)">
-
+        <div class="connectedAccountName">{{placeholder}}</div>
+        <span class="cw-verificated-user" aria-label="Verifiziert">
+            <div class="flowerStarContainer connectedAccountVerifiedIcon"
+                style="width: 16px; height: 16px;"><svg class="flowerStar" aria-hidden="false" width="16"
+                    height="16" viewBox="0 0 16 15.2">
+                    <path fill="hsl(217, calc(var(--saturation-factor, 1) * 7.6%), 33.5%)" fill-rule="evenodd"
+                        d="m16 7.6c0 .79-1.28 1.38-1.52 2.09s.44 2 0 2.59-1.84.35-2.46.8-.79 1.84-1.54 2.09-1.67-.8-2.47-.8-1.75 1-2.47.8-.92-1.64-1.54-2.09-2-.18-2.46-.8.23-1.84 0-2.59-1.54-1.3-1.54-2.09 1.28-1.38 1.52-2.09-.44-2 0-2.59 1.85-.35 2.48-.8.78-1.84 1.53-2.12 1.67.83 2.47.83 1.75-1 2.47-.8.91 1.64 1.53 2.09 2 .18 2.46.8-.23 1.84 0 2.59 1.54 1.3 1.54 2.09z">
                     </path>
                 </svg>
+                <div class="childContainer"><svg aria-hidden="false" width="16" height="16"
+                        viewBox="0 0 16 15.2">
+                        <path d="M7.4,11.17,4,8.62,5,7.26l2,1.53L10.64,4l1.36,1Z"
+                            fill="hsl(0, calc(var(--saturation-factor, 1) * 0%), 100%)"></path>
+                    </svg></div>
             </div>
-        </div>
-    </span></div>
-    <a class="anchor anchorUnderlineOnHover" href="https://conanwiki.org/wiki/Benutzer:{{placeholder}}" rel="noreferrer noopener" target="_blank" role="button" tabindex="0">
-        <svg class="connectedAccountOpenIcon" aria-hidden="false" width="24" height="24" viewBox="0 0 24 24">
-            <path fill="currentColor" d="M10 5V3H5.375C4.06519 3 3 4.06519 3 5.375V18.625C3 19.936 4.06519 21 5.375 21H18.625C19.936 21 21 19.936 21 18.625V14H19V19H5V5H10Z">
-
+        </span>
+    </div><a class="anchor anchorUnderlineOnHover" href="https://conanwiki.org/wiki/Benutzer:{{placeholder}}"
+        rel="noreferrer noopener" target="_blank" role="button" tabindex="0"><svg
+            class="connectedAccountOpenIcon" aria-hidden="false" width="24" height="24" viewBox="0 0 24 24">
+            <path fill="currentColor"
+                d="M10 5V3H5.375C4.06519 3 3 4.06519 3 5.375V18.625C3 19.936 4.06519 21 5.375 21H18.625C19.936 21 21 19.936 21 18.625V14H19V19H5V5H10Z">
             </path>
-    <path fill="currentColor" d="M21 2.99902H14V4.99902H17.586L9.29297 13.292L10.707 14.706L19 6.41302V9.99902H21V2.99902Z">
-
-</path>
-</svg></a></div>`;
+            <path fill="currentColor"
+                d="M21 2.99902H14V4.99902H17.586L9.29297 13.292L10.707 14.706L19 6.41302V9.99902H21V2.99902Z"></path>
+        </svg></a>
+</div>`;
     const css = ``;
     const conanewsGuildID = '392277656445648897';
     const WikiRoles = ['432639079084064778', '536414852315611137', '665584545097056287', '434039051566317581'];
@@ -101,11 +100,12 @@ module.exports = (() => {
         'connectedAccountName',
         'flowerStarContainer',
         'connectedAccountVerifiedIcon',
-        'flowerStar',
         'childContainer',
         'anchor',
         'anchorUnderlineOnHover',
         'connectedAccountOpenIcon',
+        'connectedAccounts',
+        'flowerStar',
     ];
 
     /**example names
@@ -433,13 +433,12 @@ module.exports = (() => {
         constructor() {
             super();
         }
-
+        //TODO: refactor all of this using more sophisticated Plugin methods, but for the moment it only works, it isn't efficient or elegant :(
         async onStart() {
             PluginUtilities.addStyle(this.getName(), css);
             try {
-                let guilds = DiscordAPI.guilds;
-                guilds = guilds.filter((guild) => guild.id == conanewsGuildID);
-                if (guilds.length > 0) {
+                const guild = DiscordModules.GuildStore.getGuilds()[conanewsGuildID];
+                if (guild) {
                     let target = document.querySelectorAll('[class*=layerContainer]');
                     this.observer = new MutationObserver(this.userModalShow);
                     let options = {
@@ -459,7 +458,7 @@ module.exports = (() => {
                     });
                     this.userModalShow();
                 } else {
-                    Logger.info(
+                    Logger.warn(
                         'Du musst im Conannews.org Server sein, um dieses Plugin benutzen zu können:\nhttps://discord.gg/conannews'
                     );
                 }
@@ -514,28 +513,21 @@ module.exports = (() => {
                         if (name_root.length > 0) {
                             name = name_root[0].innerText;
                         }
-                        let users = DiscordAPI.users.filter((user) => user.tag == name);
+                        
+                        const [nm, tag] = name.split("#");
+            
+                        const user = DiscordModules.UserStore.findByTag(nm,tag);
 
-                        if (users.length == 1) {
-                            let user = users[0];
+                        if (user) {
                             //debug(user)
-                            //user guilds are only those, which servers you and that users a re BOTH in!
-                            let guilds = user.guilds.filter((guild) => guild.id == conanewsGuildID);
-                            if (guilds.length > 0) {
-                                let conannews = guilds[0];
-                                //Logger.debug(conannews.roles);
-                                //let roles = conannews.roles.filter(role=>role.members.filter(member=>member.userId==user.id).length>0)
-                                let roles = conannews.roles
-                                    .filter((role) => WikiRoles.includes(role.id))
-                                    .filter(
-                                        (role) => role.members.filter((member) => member.userId == user.id).length > 0
-                                    );
+                           const isMember = DiscordModules.GuildMemberStore.isMember(conanewsGuildID,user.id);
+                            if (isMember) {
+                                const conannews = DiscordModules.GuildStore.getGuilds()[conanewsGuildID];     
+                                const member = DiscordModules.GuildMemberStore.getMember(conanewsGuildID,user.id)
+                                let roles = member.roles
+                                    .filter((role) => WikiRoles.includes(role))
                                 if (roles.length > 0) {
-                                    let Nickname = roles[0].members.filter((member) => member.userId == user.id)[0]
-                                        .nickname;
-                                    if (!Nickname) {
-                                        Nickname = user.username;
-                                    }
+                                    let Nickname = user.username;
                                     if (document.getElementById(`ConanwikiPlugin-name-${Nickname}`)) {
                                         debug('skipped, already present!');
                                         return null;
@@ -625,8 +617,9 @@ module.exports = (() => {
         }
 
         createConnectedDiv(name, color, verificated) {
+            Logger.info(ReactTools)
             const connDiv = DOMTools.createElement(connectedDiv);
-            connDiv.classList.add(window.ConanWikiPlugin.classes.map[MapNames.indexOf('connectedAccount')]);
+            connDiv.classList.add(window.ConanWikiPlugin.classes['connectedAccount']);
             connDiv.id = `ConanwikiPlugin-name-${name}`;
             if (document.getElementById(connDiv.id)) {
                 return null;
@@ -637,9 +630,10 @@ module.exports = (() => {
             if (verificated) {
                 connDiv.querySelector('.cw-verificated-user').style.display = 'initial';
             }
+            // TO make aria label work, I would have to use React!
             // `https://conanwiki.org/index.php?target=${name}&namespace=all&tagfilter=&start=&end=&title=Spezial:Beiträge`
             MapNames.forEach((map, index) => {
-                let replace = window.ConanWikiPlugin.classes.map[index];
+                let replace = window.ConanWikiPlugin.classes[map];
                 connDiv.querySelectorAll(`.${map}`).forEach((div) => {
                     div.classList.remove(map);
                     div.classList.add(replace);
@@ -651,20 +645,12 @@ module.exports = (() => {
 
         getObfuscatedClasses() {
             let ob = {};
-            let conn = WebpackModules.getByProps('connectedAccounts');
-            let star = WebpackModules.getByProps('flowerStar');
-            let anchor = WebpackModules.getByProps('anchorUnderlineOnHover');
-            ob.connectedAccounts = conn.connectedAccounts;
-
-            ob.map = MapNames.map((a) => {
-                let cl = conn[a];
-                if (!cl) {
-                    cl = star[a];
-                }
-                if (!cl) {
-                    cl = anchor[a];
-                }
-                return cl;
+           MapNames.forEach((a) =>{
+            if(a === "anchor"){ // anchor is also a function
+                ob[a] = WebpackModules.getByProps("anchorUnderlineOnHover")[a];
+            }else{
+                ob[a] = WebpackModules.getByProps(a)[a];
+            }
             });
 
             return ob;

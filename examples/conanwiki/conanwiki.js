@@ -1,5 +1,5 @@
 module.exports = (Plugin, Library) => {
-    const { Logger, Patcher, PluginUtilities, DOMTools, WebpackModules, DiscordAPI } = Library;
+    const { Logger, Patcher, PluginUtilities, DOMTools, WebpackModules, DiscordModules, ReactTools } = Library;
     const connectedDiv = require('connected.html');
     const css = require('styles.css');
     const conanewsGuildID = '392277656445648897';
@@ -14,11 +14,12 @@ module.exports = (Plugin, Library) => {
         'connectedAccountName',
         'flowerStarContainer',
         'connectedAccountVerifiedIcon',
-        'flowerStar',
         'childContainer',
         'anchor',
         'anchorUnderlineOnHover',
         'connectedAccountOpenIcon',
+        'connectedAccounts',
+        'flowerStar',
     ];
 
     /**example names
@@ -346,13 +347,12 @@ module.exports = (Plugin, Library) => {
         constructor() {
             super();
         }
-
+        //TODO: refactor all of this using more sophisticated Plugin methods, but for the moment it only works, it isn't efficient or elegant :(
         async onStart() {
             PluginUtilities.addStyle(this.getName(), css);
             try {
-                let guilds = DiscordAPI.guilds;
-                guilds = guilds.filter((guild) => guild.id == conanewsGuildID);
-                if (guilds.length > 0) {
+                const guild = DiscordModules.GuildStore.getGuilds()[conanewsGuildID];
+                if (guild) {
                     let target = document.querySelectorAll('[class*=layerContainer]');
                     this.observer = new MutationObserver(this.userModalShow);
                     let options = {
@@ -372,7 +372,7 @@ module.exports = (Plugin, Library) => {
                     });
                     this.userModalShow();
                 } else {
-                    Logger.info(
+                    Logger.warn(
                         'Du musst im Conannews.org Server sein, um dieses Plugin benutzen zu können:\nhttps://discord.gg/conannews'
                     );
                 }
@@ -427,28 +427,21 @@ module.exports = (Plugin, Library) => {
                         if (name_root.length > 0) {
                             name = name_root[0].innerText;
                         }
-                        let users = DiscordAPI.users.filter((user) => user.tag == name);
+                        
+                        const [nm, tag] = name.split("#");
+            
+                        const user = DiscordModules.UserStore.findByTag(nm,tag);
 
-                        if (users.length == 1) {
-                            let user = users[0];
+                        if (user) {
                             //debug(user)
-                            //user guilds are only those, which servers you and that users a re BOTH in!
-                            let guilds = user.guilds.filter((guild) => guild.id == conanewsGuildID);
-                            if (guilds.length > 0) {
-                                let conannews = guilds[0];
-                                //Logger.debug(conannews.roles);
-                                //let roles = conannews.roles.filter(role=>role.members.filter(member=>member.userId==user.id).length>0)
-                                let roles = conannews.roles
-                                    .filter((role) => WikiRoles.includes(role.id))
-                                    .filter(
-                                        (role) => role.members.filter((member) => member.userId == user.id).length > 0
-                                    );
+                           const isMember = DiscordModules.GuildMemberStore.isMember(conanewsGuildID,user.id);
+                            if (isMember) {
+                                const conannews = DiscordModules.GuildStore.getGuilds()[conanewsGuildID];     
+                                const member = DiscordModules.GuildMemberStore.getMember(conanewsGuildID,user.id)
+                                let roles = member.roles
+                                    .filter((role) => WikiRoles.includes(role))
                                 if (roles.length > 0) {
-                                    let Nickname = roles[0].members.filter((member) => member.userId == user.id)[0]
-                                        .nickname;
-                                    if (!Nickname) {
-                                        Nickname = user.username;
-                                    }
+                                    let Nickname = user.username;
                                     if (document.getElementById(`ConanwikiPlugin-name-${Nickname}`)) {
                                         debug('skipped, already present!');
                                         return null;
@@ -538,8 +531,9 @@ module.exports = (Plugin, Library) => {
         }
 
         createConnectedDiv(name, color, verificated) {
+            Logger.info(ReactTools)
             const connDiv = DOMTools.createElement(connectedDiv);
-            connDiv.classList.add(window.ConanWikiPlugin.classes.map[MapNames.indexOf('connectedAccount')]);
+            connDiv.classList.add(window.ConanWikiPlugin.classes['connectedAccount']);
             connDiv.id = `ConanwikiPlugin-name-${name}`;
             if (document.getElementById(connDiv.id)) {
                 return null;
@@ -550,9 +544,10 @@ module.exports = (Plugin, Library) => {
             if (verificated) {
                 connDiv.querySelector('.cw-verificated-user').style.display = 'initial';
             }
+            // TO make aria label work, I would have to use React!
             // `https://conanwiki.org/index.php?target=${name}&namespace=all&tagfilter=&start=&end=&title=Spezial:Beiträge`
             MapNames.forEach((map, index) => {
-                let replace = window.ConanWikiPlugin.classes.map[index];
+                let replace = window.ConanWikiPlugin.classes[map];
                 connDiv.querySelectorAll(`.${map}`).forEach((div) => {
                     div.classList.remove(map);
                     div.classList.add(replace);
@@ -564,20 +559,12 @@ module.exports = (Plugin, Library) => {
 
         getObfuscatedClasses() {
             let ob = {};
-            let conn = WebpackModules.getByProps('connectedAccounts');
-            let star = WebpackModules.getByProps('flowerStar');
-            let anchor = WebpackModules.getByProps('anchorUnderlineOnHover');
-            ob.connectedAccounts = conn.connectedAccounts;
-
-            ob.map = MapNames.map((a) => {
-                let cl = conn[a];
-                if (!cl) {
-                    cl = star[a];
-                }
-                if (!cl) {
-                    cl = anchor[a];
-                }
-                return cl;
+           MapNames.forEach((a) =>{
+            if(a === "anchor"){ // anchor is also a function
+                ob[a] = WebpackModules.getByProps("anchorUnderlineOnHover")[a];
+            }else{
+                ob[a] = WebpackModules.getByProps(a)[a];
+            }
             });
 
             return ob;

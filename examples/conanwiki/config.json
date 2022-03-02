@@ -12,12 +12,19 @@
         "paypalLink": "",
         "authorLink": "https://github.com/Totto16",
         "inviteCode": "",
-        "version": "1.0.2",
+        "version": "1.0.3",
         "description": "Zeigt falls ein User im Conannews.org Server ist, sein Wiki Profil als Benutzerinfo an.",
         "github": "https://github.com/Totto16/conanwiki-betterDiscord-plugin/",
         "github_raw": "https://raw.githubusercontent.com/Totto16/conanwiki-betterDiscord-plugin/master/release/conanwiki.plugin.js"
     },
-    "changelog": [{
+    "changelog": [
+        {
+            "title": "Update Fixes",
+            "items": [
+                "Fehler wegen dem Discord Update und Plugin Library Update behoben"
+            ]
+        },
+        {
         "title": "Small Bug Fix",
         "items": [
             "Fehler der durch 'prettier' eingeführt wurde behoben",
@@ -29,7 +36,7 @@
             "items": [
                 "Fehlerbehebungen beim hinzufügen der Info",
                 "Holt sich nun aktuellere Informationen und zeigt Rolle korrekt an",
-                "Auch User die z.B 'MARIO-WL' im Disocrd heißen und im Wiki 'Mario-WL' oder user Mit speziellen Sonderzeichen werden erkannt"
+                "Auch User die z.B 'MARIO-WL' im Discord heißen und im Wiki 'Mario-WL' oder user Mit speziellen Sonderzeichen werden erkannt"
             ]
         }
     ],
