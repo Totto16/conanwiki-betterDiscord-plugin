@@ -32,7 +32,7 @@
 @else@*/
 
 module.exports = (() => {
-    const config = {"info":{"name":"Conanwiki","authors":[{"name":"Totto","discord_id":"234601841101373440","github_username":"Totto16"}],"patreonLink":"https://www.patreon.com/conannews","paypalLink":"","authorLink":"https://github.com/Totto16","inviteCode":"","version":"1.0.3","description":"Zeigt falls ein User im Conannews.org Server ist, sein Wiki Profil als Benutzerinfo an.","github":"https://github.com/Totto16/conanwiki-betterDiscord-plugin/","github_raw":"https://raw.githubusercontent.com/Totto16/conanwiki-betterDiscord-plugin/master/release/conanwiki.plugin.js"},"changelog":[{"title":"Update Fixes","items":["Fehler wegen dem Discord Update und Plugin Library Update behoben"]},{"title":"Small Bug Fix","items":["Fehler der durch 'prettier' eingeführt wurde behoben","Automatische Updates durch github aktiviert"]},{"title":"Fehlerbehebung und Verbesserungen","items":["Fehlerbehebungen beim hinzufügen der Info","Holt sich nun aktuellere Informationen und zeigt Rolle korrekt an","Auch User die z.B 'MARIO-WL' im Discord heißen und im Wiki 'Mario-WL' oder user Mit speziellen Sonderzeichen werden erkannt"]}],"main":"conanwiki.js"};
+    const config = {"info":{"name":"Conanwiki","authors":[{"name":"Totto","discord_id":"234601841101373440","github_username":"Totto16"}],"patreonLink":"https://www.patreon.com/conannews","paypalLink":"","authorLink":"https://github.com/Totto16","inviteCode":"","version":"1.0.4","description":"Zeigt falls ein User im Conannews.org Server ist, sein Wiki Profil als Benutzerinfo an.","github":"https://github.com/Totto16/conanwiki-betterDiscord-plugin/","github_raw":"https://raw.githubusercontent.com/Totto16/conanwiki-betterDiscord-plugin/master/release/conanwiki.plugin.js"},"changelog":[{"title":"Update Fixes","items":["Fehler wegen dem Discord Update und Plugin Library Update behoben","Komischen (Discord) Bug behoben, falls dieser (momentan noch, auch nach dem aktualisieren) auftritt, Muss Discord nochmal KOMPLETT neu gestarten werden (entweder mit Alt + F4 oder mit Task Beenden)"]},{"title":"Small Bug Fix","items":["Fehler der durch 'prettier' eingeführt wurde behoben","Automatische Updates durch github aktiviert"]},{"title":"Fehlerbehebung und Verbesserungen","items":["Fehlerbehebungen beim hinzufügen der Info","Holt sich nun aktuellere Informationen und zeigt Rolle korrekt an","Auch User die z.B 'MARIO-WL' im Discord heißen und im Wiki 'Mario-WL' oder user Mit speziellen Sonderzeichen werden erkannt"]}],"main":"conanwiki.js"};
 
     return !global.ZeresPluginLibrary ? class {
         constructor() {this._config = config;}
@@ -56,7 +56,17 @@ module.exports = (() => {
         stop() {}
     } : (([Plugin, Api]) => {
         const plugin = (Plugin, Library) => {
-    const { Logger, Patcher, PluginUtilities, DOMTools, WebpackModules, DiscordModules, ReactTools } = Library;
+    const {
+        Logger,
+        Patcher,
+        PluginUtilities,
+        DOMTools,
+        WebpackModules,
+        DiscordModules,
+        ReactTools,
+        DiscordSelectors,
+        DiscordClassModules,
+    } = Library;
     const connectedDiv = `<div>
     <img alt="Connannews-Logo" class="connectedAccountIcon"
         src="https://conanwiki.org/favicon.ico">
@@ -106,6 +116,7 @@ module.exports = (() => {
         'connectedAccountOpenIcon',
         'connectedAccounts',
         'flowerStar',
+        'connectedAccount',
     ];
 
     /**example names
@@ -440,7 +451,7 @@ module.exports = (() => {
                 const guild = DiscordModules.GuildStore.getGuilds()[conanewsGuildID];
                 if (guild) {
                     let target = document.querySelectorAll('[class*=layerContainer]');
-                    this.observer = new MutationObserver(this.userModalShow);
+                    this.observer = new MutationObserver(this.userModalShow.bind(this));
                     let options = {
                         childList: true,
                         attributes: true,
@@ -452,7 +463,7 @@ module.exports = (() => {
 
                     window.ConanWikiPlugin = this;
                     await this.fetchData();
-                    this.classes = this.getObfuscatedClasses();
+                    this.getObfuscatedClasses();
                     Array.from(target).forEach((element) => {
                         this.observer.observe(element, options);
                     });
@@ -468,6 +479,7 @@ module.exports = (() => {
         }
 
         userModalShow(mutationsArray) {
+            this.getObfuscatedClasses();
             let target = document.querySelectorAll('[class*=focusLock]');
             if (target.length > 0) {
                 let org_root = target[0];
@@ -513,19 +525,18 @@ module.exports = (() => {
                         if (name_root.length > 0) {
                             name = name_root[0].innerText;
                         }
-                        
-                        const [nm, tag] = name.split("#");
-            
-                        const user = DiscordModules.UserStore.findByTag(nm,tag);
+
+                        const [nm, tag] = name.split('#');
+
+                        const user = DiscordModules.UserStore.findByTag(nm, tag);
 
                         if (user) {
                             //debug(user)
-                           const isMember = DiscordModules.GuildMemberStore.isMember(conanewsGuildID,user.id);
+                            const isMember = DiscordModules.GuildMemberStore.isMember(conanewsGuildID, user.id);
                             if (isMember) {
-                                const conannews = DiscordModules.GuildStore.getGuilds()[conanewsGuildID];     
-                                const member = DiscordModules.GuildMemberStore.getMember(conanewsGuildID,user.id)
-                                let roles = member.roles
-                                    .filter((role) => WikiRoles.includes(role))
+                                const conannews = DiscordModules.GuildStore.getGuilds()[conanewsGuildID];
+                                const member = DiscordModules.GuildMemberStore.getMember(conanewsGuildID, user.id);
+                                let roles = member.roles.filter((role) => WikiRoles.includes(role));
                                 if (roles.length > 0) {
                                     let Nickname = user.username;
                                     if (document.getElementById(`ConanwikiPlugin-name-${Nickname}`)) {
@@ -617,7 +628,6 @@ module.exports = (() => {
         }
 
         createConnectedDiv(name, color, verificated) {
-            Logger.info(ReactTools)
             const connDiv = DOMTools.createElement(connectedDiv);
             connDiv.classList.add(window.ConanWikiPlugin.classes['connectedAccount']);
             connDiv.id = `ConanwikiPlugin-name-${name}`;
@@ -645,14 +655,47 @@ module.exports = (() => {
 
         getObfuscatedClasses() {
             let ob = {};
-           MapNames.forEach((a) =>{
-            if(a === "anchor"){ // anchor is also a function
-                ob[a] = WebpackModules.getByProps("anchorUnderlineOnHover")[a];
-            }else{
-                ob[a] = WebpackModules.getByProps(a)[a];
+            /*       const keys = Object.keys(DiscordSelectors)
+            const all = keys.map(key=> DiscordSelectors[key])
+            all.forEach(a=>{
+                if(!a){return}
+                const keys2 = Object.keys(a)
+                const all = keys2.map(key=> {
+                    Logger.info(a,  a[key])
+                    if( key=='connectedAccount'){
+                        Logger.warn(  key,a[key])
+                    } 
+                  
+                    
+                    
+                })
+              
+            
+            }) */
+            if (this.allClassesAreHere) {
+                return;
             }
-            });
-
+            try {
+                MapNames.forEach((a) => {
+                    if (a === 'anchor') {
+                        // anchor is also a function
+                        ob[a] = WebpackModules.getByProps('anchorUnderlineOnHover')?.[a];
+                    } else {
+                        ob[a] = WebpackModules.getByProps(a)?.[a];
+                    }
+                });
+                const keys = Object.keys(ob);
+                this.allClassesAreHere = keys.reduce((acc, key) => acc && ob[key] !== undefined, true);
+                // Logger.info(ob, this.allClassesAreHere)
+                this.classes = ob;
+            } catch (err) {
+                /*  Logger.warn("Handled Error: ", err)
+                const ID = setTimeout(function (){
+                    clearTimeout(ID);
+                    this.getObfuscatedClasses();
+                }.bind(this), 15*1000) */
+                Logger.error('Weird Discord bug, please COMPLETELY restart it (Alt+F4 or Kill Task)');
+            }
             return ob;
         }
         async fetchData() {

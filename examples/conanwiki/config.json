@@ -12,7 +12,7 @@
         "paypalLink": "",
         "authorLink": "https://github.com/Totto16",
         "inviteCode": "",
-        "version": "1.0.3",
+        "version": "1.0.4",
         "description": "Zeigt falls ein User im Conannews.org Server ist, sein Wiki Profil als Benutzerinfo an.",
         "github": "https://github.com/Totto16/conanwiki-betterDiscord-plugin/",
         "github_raw": "https://raw.githubusercontent.com/Totto16/conanwiki-betterDiscord-plugin/master/release/conanwiki.plugin.js"
@@ -21,7 +21,8 @@
         {
             "title": "Update Fixes",
             "items": [
-                "Fehler wegen dem Discord Update und Plugin Library Update behoben"
+                "Fehler wegen dem Discord Update und Plugin Library Update behoben",
+                "Komischen (Discord) Bug behoben, falls dieser (momentan noch, auch nach dem aktualisieren) auftritt, Muss Discord nochmal KOMPLETT neu gestarten werden (entweder mit Alt + F4 oder mit Task Beenden)"
             ]
         },
         {

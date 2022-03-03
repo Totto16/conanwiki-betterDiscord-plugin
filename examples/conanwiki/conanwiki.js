@@ -1,5 +1,15 @@
 module.exports = (Plugin, Library) => {
-    const { Logger, Patcher, PluginUtilities, DOMTools, WebpackModules, DiscordModules, ReactTools } = Library;
+    const {
+        Logger,
+        Patcher,
+        PluginUtilities,
+        DOMTools,
+        WebpackModules,
+        DiscordModules,
+        ReactTools,
+        DiscordSelectors,
+        DiscordClassModules,
+    } = Library;
     const connectedDiv = require('connected.html');
     const css = require('styles.css');
     const conanewsGuildID = '392277656445648897';
@@ -20,6 +30,7 @@ module.exports = (Plugin, Library) => {
         'connectedAccountOpenIcon',
         'connectedAccounts',
         'flowerStar',
+        'connectedAccount',
     ];
 
     /**example names
@@ -354,7 +365,7 @@ module.exports = (Plugin, Library) => {
                 const guild = DiscordModules.GuildStore.getGuilds()[conanewsGuildID];
                 if (guild) {
                     let target = document.querySelectorAll('[class*=layerContainer]');
-                    this.observer = new MutationObserver(this.userModalShow);
+                    this.observer = new MutationObserver(this.userModalShow.bind(this));
                     let options = {
                         childList: true,
                         attributes: true,
@@ -366,7 +377,7 @@ module.exports = (Plugin, Library) => {
 
                     window.ConanWikiPlugin = this;
                     await this.fetchData();
-                    this.classes = this.getObfuscatedClasses();
+                    this.getObfuscatedClasses();
                     Array.from(target).forEach((element) => {
                         this.observer.observe(element, options);
                     });
@@ -382,6 +393,7 @@ module.exports = (Plugin, Library) => {
         }
 
         userModalShow(mutationsArray) {
+            this.getObfuscatedClasses();
             let target = document.querySelectorAll('[class*=focusLock]');
             if (target.length > 0) {
                 let org_root = target[0];
@@ -427,19 +439,18 @@ module.exports = (Plugin, Library) => {
                         if (name_root.length > 0) {
                             name = name_root[0].innerText;
                         }
-                        
-                        const [nm, tag] = name.split("#");
-            
-                        const user = DiscordModules.UserStore.findByTag(nm,tag);
+
+                        const [nm, tag] = name.split('#');
+
+                        const user = DiscordModules.UserStore.findByTag(nm, tag);
 
                         if (user) {
                             //debug(user)
-                           const isMember = DiscordModules.GuildMemberStore.isMember(conanewsGuildID,user.id);
+                            const isMember = DiscordModules.GuildMemberStore.isMember(conanewsGuildID, user.id);
                             if (isMember) {
-                                const conannews = DiscordModules.GuildStore.getGuilds()[conanewsGuildID];     
-                                const member = DiscordModules.GuildMemberStore.getMember(conanewsGuildID,user.id)
-                                let roles = member.roles
-                                    .filter((role) => WikiRoles.includes(role))
+                                const conannews = DiscordModules.GuildStore.getGuilds()[conanewsGuildID];
+                                const member = DiscordModules.GuildMemberStore.getMember(conanewsGuildID, user.id);
+                                let roles = member.roles.filter((role) => WikiRoles.includes(role));
                                 if (roles.length > 0) {
                                     let Nickname = user.username;
                                     if (document.getElementById(`ConanwikiPlugin-name-${Nickname}`)) {
@@ -531,7 +542,6 @@ module.exports = (Plugin, Library) => {
         }
 
         createConnectedDiv(name, color, verificated) {
-            Logger.info(ReactTools)
             const connDiv = DOMTools.createElement(connectedDiv);
             connDiv.classList.add(window.ConanWikiPlugin.classes['connectedAccount']);
             connDiv.id = `ConanwikiPlugin-name-${name}`;
@@ -559,14 +569,47 @@ module.exports = (Plugin, Library) => {
 
         getObfuscatedClasses() {
             let ob = {};
-           MapNames.forEach((a) =>{
-            if(a === "anchor"){ // anchor is also a function
-                ob[a] = WebpackModules.getByProps("anchorUnderlineOnHover")[a];
-            }else{
-                ob[a] = WebpackModules.getByProps(a)[a];
+            /*       const keys = Object.keys(DiscordSelectors)
+            const all = keys.map(key=> DiscordSelectors[key])
+            all.forEach(a=>{
+                if(!a){return}
+                const keys2 = Object.keys(a)
+                const all = keys2.map(key=> {
+                    Logger.info(a,  a[key])
+                    if( key=='connectedAccount'){
+                        Logger.warn(  key,a[key])
+                    } 
+                  
+                    
+                    
+                })
+              
+            
+            }) */
+            if (this.allClassesAreHere) {
+                return;
             }
-            });
-
+            try {
+                MapNames.forEach((a) => {
+                    if (a === 'anchor') {
+                        // anchor is also a function
+                        ob[a] = WebpackModules.getByProps('anchorUnderlineOnHover')?.[a];
+                    } else {
+                        ob[a] = WebpackModules.getByProps(a)?.[a];
+                    }
+                });
+                const keys = Object.keys(ob);
+                this.allClassesAreHere = keys.reduce((acc, key) => acc && ob[key] !== undefined, true);
+                // Logger.info(ob, this.allClassesAreHere)
+                this.classes = ob;
+            } catch (err) {
+                /*  Logger.warn("Handled Error: ", err)
+                const ID = setTimeout(function (){
+                    clearTimeout(ID);
+                    this.getObfuscatedClasses();
+                }.bind(this), 15*1000) */
+                Logger.error('Weird Discord bug, please COMPLETELY restart it (Alt+F4 or Kill Task)');
+            }
             return ob;
         }
         async fetchData() {
